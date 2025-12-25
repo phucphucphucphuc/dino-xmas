@@ -15,34 +15,49 @@
             font-family: Arial, sans-serif;
         }
         #game {
-            width: 600px;
-            height: 200px;
+            width: 800px;
+            height: 800px;
             border: 1px solid #000;
             position: relative;
             overflow: hidden;
             background-color: #fff;
+            /* Custom background image */
+            background-image: url('assets/bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
         #dino {
-            width: 40px;
-            height: 40px;
-            background-color: #333;
+            width: 120px;
+            height: 160px;
+            background-color: none;
             position: absolute;
-            bottom: 0;
+            bottom: 80px;
             left: 50px;
         }
         #obstacle {
-            width: 20px;
-            height: 40px;
+            width: 40px;
+            height: 80px;
             background-color: #f00;
             position: absolute;
-            bottom: 0;
-            right: 0;
+            bottom: 80px;
+            right: 100px;
         }
         #score {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 18px;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 100px;
+            font-weight: bold;
+            color: rgb(161, 26, 26);
+            text-shadow:                    /*text outline */
+                -5px -5px 0 #fff,
+                5px -5px 0 #fff,
+                -5px 5px 0 #fff,
+                5px 5px 0 #fff;        
+            background-color: transparent;
+            padding: 0;
         }
         #game-over {
             position: absolute;
@@ -57,16 +72,23 @@
             position: absolute;
             bottom: 0;
             width: 100%;
-            height: 5px;
-            background-color: #000;
+            height: 80px;
+            background-image: url('assets/platform.jpg');  
+            background-size: auto 100%;             /* repeats horizontally, fits height */
+            background-repeat: repeat-x;            /* tiles texture across the width */
+            background-position: bottom;
+            border-top: 5px solid #c9c9c9;
+            /* border-top: none;  */
+            /* box-shadow: inset 0 10px 20px rgba(0,0,0,0.4);  */
         }
     </style>
 </head>
 <body>
     <div id="game">
-        <div id="dino"></div>
+        <!-- <div id="dino"></div> -->
+        <img id="dino" src="assets/run1.png" alt="Dino">
         <div id="obstacle"></div>
-        <div id="score">Score: 0</div>
+        <div id="score"></div>
         <div id="game-over">Game Over! Press Space to Restart</div>
         <div class="ground"></div>
     </div>
@@ -78,23 +100,35 @@
         const gameOverDisplay = document.getElementById('game-over');
 
         let isJumping = false;
-        let gravity = 0.9;
+        let gravity = 0.99;
         let position = 0;
         let score = 0;
         let gameOver = false;
         let obstacleSpeed = 5;
 
+        // animation frame 1,2
+        let currentFrame = 0;
+        const frames = ['assets/run1.png', 'assets/run2.png'];
+        const frameInterval = setInterval(() => {
+            if (!gameOver) {                                                            // Only animate if game is active
+                currentFrame = (currentFrame + 1) % frames.length;
+                dino.src = frames[currentFrame];
+            } else {
+                dino.src = 'assets/lose.png';                                          // Show dino3 on game over
+            }
+        }, 200); // Switch every 200ms
+
         function jump() {
             if (isJumping || gameOver) return;
             isJumping = true;
             let upInterval = setInterval(() => {
-                if (position >= 150) {
+                if (position >= 400) {
                     clearInterval(upInterval);
                     let downInterval = setInterval(() => {
-                        if (position <= 0) {
+                        if (position <= 80) {
                             clearInterval(downInterval);
                             isJumping = false;
-                            position = 0;
+                            position = 80;
                         } else {
                             position -= 5;
                             position *= gravity;
@@ -102,7 +136,7 @@
                         }
                     }, 20);
                 } else {
-                    position += 30;
+                    position += 25;
                     position *= gravity;
                     dino.style.bottom = position + 'px';
                 }
@@ -118,14 +152,14 @@
                     clearInterval(obstacleInterval);
                     return;
                 }
-                if (obstaclePosition < 600) { // Move left until off-screen
+                if (obstaclePosition < 800) { // Move left until off-screen
                     obstaclePosition += obstacleSpeed;
                     obstacle.style.right = obstaclePosition + 'px';
                 } else {
                     obstaclePosition = 0; // Reset to right
                     score++;
-                    scoreDisplay.innerText = 'Score: ' + score;
-                    if (score % 10 === 0) obstacleSpeed += 0.5; // Increase difficulty
+                    scoreDisplay.innerText = score;
+                    if (score % 3 == 0) obstacleSpeed += 2; // Increase difficulty
                 }
 
                 // Collision detection
@@ -147,9 +181,11 @@
             gameOver = false;
             gameOverDisplay.style.display = 'none';
             score = 0;
-            scoreDisplay.innerText = 'Score: 0';
+            scoreDisplay.innerText = score;
             obstacleSpeed = 5;
             moveObstacle();
+            currentFrame = 0;
+            dino.src = frames[currentFrame];
         }
 
         document.addEventListener('keydown', (e) => {
