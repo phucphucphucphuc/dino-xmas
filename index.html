@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Dino Jumping Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #game {
+            width: 600px;
+            height: 200px;
+            border: 1px solid #000;
+            position: relative;
+            overflow: hidden;
+            background-color: #fff;
+        }
+        #dino {
+            width: 40px;
+            height: 40px;
+            background-color: #333;
+            position: absolute;
+            bottom: 0;
+            left: 50px;
+        }
+        #obstacle {
+            width: 20px;
+            height: 40px;
+            background-color: #f00;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 18px;
+        }
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: red;
+            display: none;
+        }
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 5px;
+            background-color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <div id="dino"></div>
+        <div id="obstacle"></div>
+        <div id="score">Score: 0</div>
+        <div id="game-over">Game Over! Press Space to Restart</div>
+        <div class="ground"></div>
+    </div>
+
+    <script>
+        const dino = document.getElementById('dino');
+        const obstacle = document.getElementById('obstacle');
+        const scoreDisplay = document.getElementById('score');
+        const gameOverDisplay = document.getElementById('game-over');
+
+        let isJumping = false;
+        let gravity = 0.9;
+        let position = 0;
+        let score = 0;
+        let gameOver = false;
+        let obstacleSpeed = 5;
+
+        function jump() {
+            if (isJumping || gameOver) return;
+            isJumping = true;
+            let upInterval = setInterval(() => {
+                if (position >= 150) {
+                    clearInterval(upInterval);
+                    let downInterval = setInterval(() => {
+                        if (position <= 0) {
+                            clearInterval(downInterval);
+                            isJumping = false;
+                            position = 0;
+                        } else {
+                            position -= 5;
+                            position *= gravity;
+                            dino.style.bottom = position + 'px';
+                        }
+                    }, 20);
+                } else {
+                    position += 30;
+                    position *= gravity;
+                    dino.style.bottom = position + 'px';
+                }
+            }, 20);
+        }
+
+        function moveObstacle() {
+            let obstaclePosition = 0; // Start at right edge
+            obstacle.style.right = obstaclePosition + 'px';
+
+            let obstacleInterval = setInterval(() => {
+                if (gameOver) {
+                    clearInterval(obstacleInterval);
+                    return;
+                }
+                if (obstaclePosition < 600) { // Move left until off-screen
+                    obstaclePosition += obstacleSpeed;
+                    obstacle.style.right = obstaclePosition + 'px';
+                } else {
+                    obstaclePosition = 0; // Reset to right
+                    score++;
+                    scoreDisplay.innerText = 'Score: ' + score;
+                    if (score % 10 === 0) obstacleSpeed += 0.5; // Increase difficulty
+                }
+
+                // Collision detection
+                const dinoRect = dino.getBoundingClientRect();
+                const obstacleRect = obstacle.getBoundingClientRect();
+                if (
+                    dinoRect.right > obstacleRect.left &&
+                    dinoRect.left < obstacleRect.right &&
+                    dinoRect.bottom > obstacleRect.top
+                ) {
+                    gameOver = true;
+                    gameOverDisplay.style.display = 'block';
+                    clearInterval(obstacleInterval);
+                }
+            }, 20);
+        }
+
+        function startGame() {
+            gameOver = false;
+            gameOverDisplay.style.display = 'none';
+            score = 0;
+            scoreDisplay.innerText = 'Score: 0';
+            obstacleSpeed = 5;
+            moveObstacle();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                if (gameOver) {
+                    startGame();
+                } else {
+                    jump();
+                }
+            }
+        });
+
+        // Start the game initially
+        startGame();
+    </script>
+</body>
+</html>
