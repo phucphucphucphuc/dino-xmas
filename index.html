@@ -36,12 +36,12 @@
             left: 50px;
         }
         #obstacle {
-            width: 40px;
-            height: 80px;
-            background-color: #f00;
+            width: 80px;
+            height: 120px;
             position: absolute;
             bottom: 80px;
             right: 100px;
+            background: none;
         }
         #score {
             position: absolute;
@@ -59,15 +59,39 @@
             background-color: transparent;
             padding: 0;
         }
-        #game-over {
+        
+        /* gameover image */
+        #lose-screen {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 24px;
-            color: red;
-            display: none;
+            width: 600px;               /* Adjust to fit your image */
+            height: auto;
+            display: none;              /* Hidden by default */
+            pointer-events: none;       /* Allows clicks through to restart */
+            z-index: 10;                /* Above other elements */
         }
+
+        /* gameover text */
+        #game-over {
+            position: absolute;
+            top: 65%;   
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 48px;             /* Larger festive text */
+            font-weight: bold;
+            color: #7c1212;              /* Red for emphasis */
+            text-shadow: 
+                -2px -2px 0 #fff,
+                2px -2px 0 #fff,
+                -2px 2px 0 #fff,
+                2px 2px 0 #fff;          /* White outline for snowy vibe */
+            display: none;               /* Hidden by default */
+            z-index: 20;
+        }
+
+        
         .ground {
             position: absolute;
             bottom: 0;
@@ -87,9 +111,12 @@
     <div id="game">
         <!-- <div id="dino"></div> -->
         <img id="dino" src="assets/run1.png" alt="Dino">
-        <div id="obstacle"></div>
+        <img id="obstacle" src="assets/obstacle.png" alt="Obstacle">
         <div id="score"></div>
-        <div id="game-over">Game Over! Press Space to Restart</div>
+        
+        <img id="lose-screen" src="assets/lose.png" alt="Game Over">
+        <div id="game-over">Game Over!</div>
+
         <div class="ground"></div>
     </div>
 
@@ -100,7 +127,7 @@
         const gameOverDisplay = document.getElementById('game-over');
 
         let isJumping = false;
-        let gravity = 0.99;
+        let gravity = 1;
         let position = 0;
         let score = 0;
         let gameOver = false;
@@ -122,7 +149,7 @@
             if (isJumping || gameOver) return;
             isJumping = true;
             let upInterval = setInterval(() => {
-                if (position >= 400) {
+                if (position >= 500) {
                     clearInterval(upInterval);
                     let downInterval = setInterval(() => {
                         if (position <= 80) {
@@ -159,7 +186,10 @@
                     obstaclePosition = 0; // Reset to right
                     score++;
                     scoreDisplay.innerText = score;
-                    if (score % 3 == 0) obstacleSpeed += 2; // Increase difficulty
+                    if (score % 3 == 0) {
+                        obstacleSpeed += 2; // Increase difficulty
+                        gravity -= 0.01;
+                    }
                 }
 
                 // Collision detection
@@ -173,6 +203,9 @@
                     gameOver = true;
                     gameOverDisplay.style.display = 'block';
                     clearInterval(obstacleInterval);
+                    dino.src = 'assets/lose.png';
+                    document.getElementById('lose-screen').style.display = 'block';  // Show lose picture
+                    document.getElementById('game-over').style.display = 'block';
                 }
             }, 20);
         }
@@ -186,6 +219,8 @@
             moveObstacle();
             currentFrame = 0;
             dino.src = frames[currentFrame];
+            document.getElementById('lose-screen').style.display = 'none';
+            document.getElementById('game-over').style.display = 'none';
         }
 
         document.addEventListener('keydown', (e) => {
