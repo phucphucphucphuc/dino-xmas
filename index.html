@@ -174,7 +174,8 @@
         let obstacleSpeed = 5;
         let gameOver = false;
         let gameWon = false;
-        
+        let musicUnlocked = false;    
+        let waitingForRestartTap = false;    
 
         // animation frame 1,2
         let currentFrame = 0;
@@ -286,8 +287,6 @@
             scoreDisplay.innerText = score;
             dino.style.display = 'block';
 
-            backgroundMusic.play();
-
             obstacleSpeed = 5;
             gravity = 1
             score = 0
@@ -297,8 +296,19 @@
             dino.src = frames[currentFrame];
         }
 
+        function unlockAndPlayMusic() {
+            if (!musicUnlocked) {
+                musicUnlocked = true;
+                backgroundMusic.play().catch(() => {
+                    // Silent catch in case of any error
+                });
+            }
+        }
+
+        // Keyboard input
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
+                unlockAndPlayMusic(); // Unlock on first key press
                 if (gameOver || gameWon) {
                     startGame();
                 } else {
@@ -307,19 +317,18 @@
             }
         });
 
+        // Touch input for mobile
         document.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            unlockAndPlayMusic(); // Unlock on first tap
 
             if (gameOver || gameWon) {
                 if (waitingForRestartTap) {
-                    // First tap after win/lose: do nothing (let player see the screen)
                     waitingForRestartTap = false;
                 } else {
-                    // Second tap: restart the game
                     startGame();
                 }
             } else {
-                // Normal gameplay: jump
                 jump();
             }
         });
