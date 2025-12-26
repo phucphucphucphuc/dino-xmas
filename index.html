@@ -309,9 +309,17 @@
 
         document.addEventListener('touchstart', (e) => {
             e.preventDefault();
+
             if (gameOver || gameWon) {
-                startGame();
+                if (waitingForRestartTap) {
+                    // First tap after win/lose: do nothing (let player see the screen)
+                    waitingForRestartTap = false;
+                } else {
+                    // Second tap: restart the game
+                    startGame();
+                }
             } else {
+                // Normal gameplay: jump
                 jump();
             }
         });
